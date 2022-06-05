@@ -75,5 +75,7 @@ def crawl_page(year: int):
 
 directory = f"./records/record-{round(time.time())}"
 os.makedirs(directory)
-for year in range(1390, 1402):
-    crawl_page(year)
+# for year in range(1390, 1402):
+#     crawl_page(year)
+
+crawl_page(1400)
