@@ -24,7 +24,7 @@ def make_link(href):
     return 'https://www.mashreghnews.ir' + href
 
 
-def crawl_page(year: int):
+def crawl(year: int):
 
     scraped_data = []
 
@@ -71,11 +71,10 @@ def crawl_page(year: int):
     print(f"{year} finished")
 
     df = pd.DataFrame(scraped_data)
-    df.to_csv(f'{directory}/{year}.csv')
+    df.to_csv(f'records/record.csv')
 
-directory = f"./records/record-{round(time.time())}"
-os.makedirs(directory)
+
+# directory = f"./records/record-{round(time.time())}"
+# os.makedirs(directory)
 # for year in range(1390, 1402):
 #     crawl_page(year)
-
-crawl_page(1400)
