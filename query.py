@@ -2,7 +2,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import csv
-from pprint import pprint
 
 def query(query):
     csv_file = open('./records/record.csv', encoding='utf-8')
@@ -13,26 +12,12 @@ def query(query):
     for row in reader:
         docs.append(row[6])
 
-    # pprint(docs)
-
     vectorizer = TfidfVectorizer(lowercase=True)
     vectorizer.fit(docs)
 
-    # pprint(vectorizer.vocabulary_)
-
     docs_tfidf = vectorizer.transform(docs)
 
-    # type(docs_tfidf), docs_tfidf.shape
-
-    # pprint(docs_tfidf)
-
-    # print (docs_tfidf.shape, len(vectorizer.vocabulary_))
-
-    # print(list(vectorizer.vocabulary_.keys())[:10])
-
     query_tfidf = vectorizer.transform([query])[0]
-
-    print(vectorizer.transform([query]))
 
     cosines = []
     for d in docs_tfidf:
@@ -40,8 +25,14 @@ def query(query):
 
     sorted_ids = np.argsort(cosines)
 
-    # pprint(sorted_ids)
-
+    founded = 0
     for i in range(3):
         cur_id = sorted_ids[-i-1]
-        print(docs[cur_id], cosines[cur_id])
+        if (cosines[cur_id] > 0):
+            founded += 1
+            print(docs[cur_id], cosines[cur_id])
+
+    if (founded > 0):
+        print(f"{founded} article found!")
+    else:
+        print("no match found!")

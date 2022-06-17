@@ -9,8 +9,9 @@ def clear():
 
 def print_list():
     print(f"choose:")
-    print(f"1. crawl site")
-    print(f"2. query phrase")
+    print(f"1. Crawl site")
+    print(f"2. Query phrase")
+    print(f"0. Exit")
 
 
 while True:
@@ -22,9 +23,12 @@ while True:
             print("site is crawling")
             crawl(1395)
         elif (chosen_view == 2):
-            print("site is crawling")
+            print("query crawled data")
             phrase = input('enter a phrase to query for:')
             query(phrase)
+        elif (chosen_view == 0):
+            exit
+            break
         else:
             print('not allowed')
 

@@ -3,21 +3,7 @@ from bs4 import BeautifulSoup
 from newspaper import Article
 from tqdm import tqdm
 import pandas as pd
-import os
-import glob
 from pprint import pprint
-import shutil
-import time
-
-
-# def reset_folder():
-#     files = glob.glob('./outputs/*.csv')
-#     directory = f"./outputs/records/record-{time.time()}"
-#     if not os.path.exists(directory):
-#         os.makedirs(directory)
-#     for file in files:
-#         shutil.copy(file, directory)
-#         os.remove(file)
 
 
 def make_link(href):
@@ -31,7 +17,7 @@ def crawl(year: int):
     for month in range(12, 13):
         for day in range(31, 32):
             url_list = []
-            page = 98
+            page = 1
             while True:
                 page += 1
 
@@ -72,9 +58,3 @@ def crawl(year: int):
 
     df = pd.DataFrame(scraped_data)
     df.to_csv(f'records/record.csv')
-
-
-# directory = f"./records/record-{round(time.time())}"
-# os.makedirs(directory)
-# for year in range(1390, 1402):
-#     crawl_page(year)
