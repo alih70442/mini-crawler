@@ -1,5 +1,8 @@
 import sqlite3
 
+DB_TYPE_ENAMAD_SITE = 0
+DB_TYPE_TAPIN_PODRO_SITE = 1
+
 def init():
     conn = sqlite3.connect('data.db')
 
@@ -44,3 +47,27 @@ def fetch(type):
     
     return data
     
+def clear_type(type):
+    conn = sqlite3.connect('data.db')
+
+    cursor = conn.cursor()
+
+    sql = f"DELETE FROM crawls WHERE type = {type}"
+    cursor.execute(sql)
+
+    conn.commit()
+
+    conn.close()
+
+def fetch_custom_sql (sql):
+    conn = sqlite3.connect('data.db')
+
+    cursor = conn.cursor()
+
+    cursor.execute(sql)
+
+    data = cursor.fetchall()
+
+    conn.close()
+    
+    return data
