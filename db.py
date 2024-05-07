@@ -1,4 +1,6 @@
 import sqlite3
+import json
+import pandas as pd
 
 DB_TYPE_ENAMAD_SITE = 0
 DB_TYPE_TAPIN_PODRO_SITE = 1
@@ -71,3 +73,16 @@ def fetch_custom_sql (sql):
     conn.close()
     
     return data
+
+def export_xlsx(type):
+    
+    def map_data(record):
+        return json.loads(record[1])
+    
+    records = fetch(type)
+    
+    site_data = map(map_data, records)
+
+    df = pd.DataFrame(site_data)
+    df.to_excel(f"export-type-{type}.xlsx")
+    

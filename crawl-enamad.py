@@ -1,6 +1,6 @@
 import json
 import requests
-from db import init, insert, fetch, clear_type, DB_TYPE_ENAMAD_SITE, DB_TYPE_TAPIN_PODRO_SITE,fetch_custom_sql
+from db import init, insert, fetch, clear_type, DB_TYPE_ENAMAD_SITE, DB_TYPE_TAPIN_PODRO_SITE, fetch_custom_sql, export_xlsx
 from bs4 import BeautifulSoup
 
 # persian-woocommerce-shipping
@@ -110,3 +110,4 @@ def crawl_plugins():
         counter += 1
 
 crawl_plugins()
+# export_xlsx(DB_TYPE_TAPIN_PODRO_SITE)
