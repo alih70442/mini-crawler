@@ -1,13 +1,12 @@
 import json
 import requests
-from db import init, insert, fetch, clear_type, DB_TYPE_ENAMAD_SITE, DB_TYPE_TAPIN_PODRO_SITE, fetch_custom_sql, export_xlsx
+from db import init, insert, fetch, clear_type, DB_TYPE_ENAMAD_SITE, DB_TYPE_TAPIN_PODRO_SITE, fetch_custom_sql, export_xlsx, clear_type
 from bs4 import BeautifulSoup
 
-# persian-woocommerce-shipping
-# podro-wp
-# site is WP if there is wp- in it
+# is_wp -> contains wp-
 # tapin plugin -> site_url/wp-content/plugins/persian-woocommerce-shipping/assets/js/pws.js
-# tapin plugin -> site_url/wp-content/plugins/podro-wp/assets/js/disable-podro.js
+# podro plugin -> site_url/wp-content/plugins/podro-wp/assets/js/disable-podro.js
+# PWA -> contains rel="manifest"
 
 init()
 
@@ -55,10 +54,14 @@ def crawl():
             
         print(f"page {page_number} crawled")
 
-def crawl_plugins():
+def crawl_site_types():
     
     def find_last_site_index():
         last_record = fetch_custom_sql(f"select * from crawls where type = {DB_TYPE_TAPIN_PODRO_SITE} order by id desc limit 1");
+        
+        if not len(last_record):
+            return fetch_custom_sql(f"select * from crawls where type = {DB_TYPE_ENAMAD_SITE} limit 1")[0][0]
+        
         last_site_url = json.loads(last_record[0][1])[0]
         last_site_url = last_site_url.replace('http://', '')
         last_site_url = last_site_url.replace('https://', '')
@@ -74,34 +77,53 @@ def crawl_plugins():
     for site_obj in sites:
         site_url = json.loads(site_obj[1])[0].replace('http://', 'https://')
         
-        result = [site_url, False, False]
-
-        # check tapin
-        page_url = f"{site_url}/wp-content/plugins/persian-woocommerce-shipping/assets/js/pws.js"
-
+        # [site_url, is_wp, is_tapin, is_podro, is_pwa]
+        result = [site_url, False, False, False, False]
+        
+        # check wp
         try:
-            response = requests.get(page_url, timeout=10)
+            response = requests.get(site_url, timeout=10)
             response.raise_for_status() 
             
-            if response.status_code == 200 and "pws_selectWoo" in response.text:
-                # print(f"has tapin: {site_url}")
-                result[1] = True
-        except requests.exceptions.RequestException as e:
-            print(F"{counter}/{sites_count} => Failed")
+            if response.status_code == 200:
+                
+                # check pwa
+                soup = BeautifulSoup(response.text, features='lxml')
+                manifest_link = soup.select_one('link[rel="manifest"]')
+                if manifest_link:
+                    result[4] = True
+                    
+                # check wp
+                if "wp-" in response.text:
+                    result[1] = True
+                    
+                    # check tapin
+                    page_url = f"{site_url}/wp-content/plugins/persian-woocommerce-shipping/assets/js/pws.js"
 
-            
-        # check podro
-        page_url = f"{site_url}/wp-content/plugins/podro-wp/assets/js/disable-podro.js"
+                    try:
+                        response = requests.get(page_url, timeout=10)
+                        response.raise_for_status() 
+                        
+                        if response.status_code == 200 and "pws_selectWoo" in response.text:
+                            result[2] = True
+                    except requests.exceptions.RequestException as e:
+                        print(F"{counter}/{sites_count} => Tapin Failed")
 
-        try:
-            response = requests.get(page_url, timeout=10)
-            response.raise_for_status() 
-            
-            if response.status_code == 200 and "is_this_podro_city" in response.text:
-                # print(f"has podro: {site_url}")
-                result[2] = True
+                        
+                    # check podro
+                    page_url = f"{site_url}/wp-content/plugins/podro-wp/assets/js/disable-podro.js"
+
+                    try:
+                        response = requests.get(page_url, timeout=10)
+                        response.raise_for_status() 
+                        
+                        if response.status_code == 200 and "is_this_podro_city" in response.text:
+                            result[3] = True
+                    except requests.exceptions.RequestException as e:
+                        print(F"{counter}/{sites_count} => Podro Failed")
+                    
         except requests.exceptions.RequestException as e:
-            print(F"{counter}/{sites_count} => Failed")
+            print(F"{counter}/{sites_count} => WP Failed")
 
         insert(json.dumps(result), DB_TYPE_TAPIN_PODRO_SITE)
             
@@ -109,5 +131,6 @@ def crawl_plugins():
         
         counter += 1
 
-crawl_plugins()
-# export_xlsx(DB_TYPE_TAPIN_PODRO_SITE)
+# crawl_site_types()
+export_xlsx(DB_TYPE_TAPIN_PODRO_SITE)
+# clear_type(1)
